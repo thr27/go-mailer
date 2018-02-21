@@ -14,51 +14,51 @@
 package message
 
 import (
-    "encoding/json"
-    "fmt"
-    "os"
+	"encoding/json"
+	"fmt"
+	"os"
 
-    "github.com/felipedjinn/go-mailer/conf"
+	"github.com/thr27/go-mailer/conf"
 )
 
 // A Message representes a mail to send
 type Message struct {
-    To              []string
-    ReplayTo        string      `json:replay-to`
-    Subject         string
-    Body            string
+	To       []string
+	ReplayTo string `json:replay-to`
+	Subject  string
+	Body     string
 }
 
 // New creates a new Message loading your
 // data from path argument JSON file.
 func New(path string) (m *Message, err error) {
-    m = new(Message)
+	m = new(Message)
 
-    // Defaults
-    m.ReplayTo = conf.MailFrom()
+	// Defaults
+	m.ReplayTo = conf.MailFrom()
 
-    file, err := os.Open(path)
-    if err != nil {
-        return nil, err
-    }
-    defer file.Close()
+	file, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
 
-    decoder := json.NewDecoder(file)
-    err = decoder.Decode(m)
-    if err != nil {
-        return nil, err
-    }
+	decoder := json.NewDecoder(file)
+	err = decoder.Decode(m)
+	if err != nil {
+		return nil, err
+	}
 
-    return m, nil
+	return m, nil
 }
 
 // Converts a Message object to string
 func (m *Message) String() string {
-    s := "Message:"
-    s += fmt.Sprintf("To       : %v\n", m.To)
-    s += fmt.Sprintf("ReplayTo : %s\n", m.ReplayTo)
-    s += fmt.Sprintf("Subject  : %s\n", m.Subject)
-    s += fmt.Sprintf("Body     : %s\n", m.Body)
+	s := "Message:"
+	s += fmt.Sprintf("To       : %v\n", m.To)
+	s += fmt.Sprintf("ReplayTo : %s\n", m.ReplayTo)
+	s += fmt.Sprintf("Subject  : %s\n", m.Subject)
+	s += fmt.Sprintf("Body     : %s\n", m.Body)
 
-    return s
+	return s
 }

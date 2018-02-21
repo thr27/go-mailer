@@ -14,71 +14,71 @@
 package queue
 
 import (
-    "fmt"
-    "os"
-    "regexp"
-    "path/filepath"
-    "log"
+	"fmt"
+	"log"
+	"os"
+	"path/filepath"
+	"regexp"
 
-	"github.com/felipedjinn/go-mailer/conf"
-	"github.com/felipedjinn/go-mailer/message"
-	"github.com/felipedjinn/go-mailer/mailer"
+	"github.com/thr27/go-mailer/conf"
+	"github.com/thr27/go-mailer/mailer"
+	"github.com/thr27/go-mailer/message"
 )
 
 // A Queue represents an active queue object.
 type Queue struct {
-    Files   []string
-    Dir     string
+	Files []string
+	Dir   string
 }
 
 // New creates a new Queue
 // Return error when queue directory dont exists.
 func New() *Queue {
-    q := new(Queue)
-    q.Dir = conf.QueueDir()
+	q := new(Queue)
+	q.Dir = conf.QueueDir()
 
-    //if _, err := os.Stat(q.Dir); os.IsNotExist(err) {
-    //    return nil, fmt.Errorf("Queue dir \"%s\" not found", q.Dir)
-    //}
+	//if _, err := os.Stat(q.Dir); os.IsNotExist(err) {
+	//    return nil, fmt.Errorf("Queue dir \"%s\" not found", q.Dir)
+	//}
 
-    return q
+	return q
 }
 
 // HasQueue checks if has files in queue directory and
 // append this files in Queue.Files.
 func (q *Queue) HasQueue() (hasQueue bool, err error) {
-    dir, err := os.Open(q.Dir)
-    if err != nil && os.IsNotExist(err) {
-        return false, fmt.Errorf("Queue dir \"%s\" not found", q.Dir)
-    }
-    defer dir.Close()
+	dir, err := os.Open(q.Dir)
+	if err != nil && os.IsNotExist(err) {
+		return false, fmt.Errorf("Queue dir \"%s\" not found", q.Dir)
+	}
+	defer dir.Close()
 
-    fileInfos, _ := dir.Readdir(-1)
-    for _, fi := range fileInfos {
-        if fi.IsDir() {
-            continue
-        }
+	fileInfos, _ := dir.Readdir(-1)
+	for _, fi := range fileInfos {
+		if fi.IsDir() {
+			continue
+		}
 
-        if ok, _ := regexp.MatchString("^[0-9]+\\.json$", fi.Name()); ok {
-            hasQueue = true
-            f, _ := filepath.Abs(q.Dir + string(os.PathSeparator) + fi.Name())
-            q.Files = append(q.Files, f)
-        }
-    }
+		if ok, _ := regexp.MatchString("^[0-9]+\\.json$", fi.Name()); ok {
+			hasQueue = true
+			f, _ := filepath.Abs(q.Dir + string(os.PathSeparator) + fi.Name())
+			q.Files = append(q.Files, f)
+		}
+	}
 
-    return hasQueue, nil
+	return hasQueue, nil
 }
 
 // Process a file in argument.
 func (q *Queue) Process(file string) {
-    log.Printf("Processing file: %s\n", file)
+	log.Printf("Processing file: %s\n", file)
 
-    message, err := message.New(file);
-    if err != nil {
-        log.Printf(err.Error())
-        return
-    }
+	message, err := message.New(file)
+	if err != nil {
+		log.Printf(err.Error())
+		return
+	}
 
-    // TODO: Remove file from queue when mail.Send return TRUE
-    mailer.Send(message)
+	// TODO: Remove file from queue when mail.Send return TRUE
+	mailer.Send(message)
 }

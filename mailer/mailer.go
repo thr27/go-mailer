@@ -14,69 +14,69 @@
 package mailer
 
 import (
-    "encoding/base64"
-    "fmt"
-    "log"
-    "net/mail"
-    "net/smtp"
-    "strconv"
-    "strings"
+	"encoding/base64"
+	"fmt"
+	"log"
+	"net/mail"
+	"net/smtp"
+	"strconv"
+	"strings"
 
-    "github.com/felipedjinn/go-mailer/conf"
-    "github.com/felipedjinn/go-mailer/message"
+	"github.com/thr27/go-mailer/conf"
+	"github.com/thr27/go-mailer/message"
 )
 
 func Send(m *message.Message) bool {
-    auth := smtpAuth()
-    headers := mailHeader(m)
+	auth := smtpAuth()
+	headers := mailHeader(m)
 
-    body := ""
-    for k, v := range headers {
-        body += fmt.Sprintf("%s: %s\r\n", k, v)
-    }
+	body := ""
+	for k, v := range headers {
+		body += fmt.Sprintf("%s: %s\r\n", k, v)
+	}
 
-    // Recipients receives in Bcc
-    body += fmt.Sprintf("Bcc: %s\r\n", strings.Join(m.To, ";"))
-    body += "\r\n" + base64.StdEncoding.EncodeToString([]byte(m.Body))
+	// Recipients receives in Bcc
+	body += fmt.Sprintf("Bcc: %s\r\n", strings.Join(m.To, ";"))
+	body += "\r\n" + base64.StdEncoding.EncodeToString([]byte(m.Body))
 
-    // TODO: Manualy create TSL connection
-    err := smtp.SendMail(
-        fmt.Sprintf("%s:%s", conf.Smtp().Host, strconv.Itoa(conf.Smtp().Port)),
-        auth,
-        conf.MailFrom(),
-        []string{""},
-        []byte(body),
-    )
-    if err != nil {
-        log.Println("SendMail: " + err.Error())
-        return false
-    }
+	// TODO: Manualy create TSL connection
+	err := smtp.SendMail(
+		fmt.Sprintf("%s:%s", conf.Smtp().Host, strconv.Itoa(conf.Smtp().Port)),
+		auth,
+		conf.MailFrom(),
+		[]string{""},
+		[]byte(body),
+	)
+	if err != nil {
+		log.Println("SendMail: " + err.Error())
+		return false
+	}
 
-    return true
+	return true
 }
 
 // Set up authentication information
 func smtpAuth() smtp.Auth {
-    return smtp.PlainAuth(
-        "",
-        conf.Smtp().User,
-        conf.Smtp().Pass,
-        conf.Smtp().Host,
-    )
+	return smtp.PlainAuth(
+		"",
+		conf.Smtp().User,
+		conf.Smtp().Pass,
+		conf.Smtp().Host,
+	)
 }
 
 // mailHeader returns a map[string] with headers to use
 // when send email.
 func mailHeader(m *message.Message) map[string]string {
-    header := make(map[string]string)
+	header := make(map[string]string)
 
-    from := mail.Address{conf.MailFromName(), conf.MailFrom()}
-    header["From"] = from.String()
-    header["To"] = ""
-    header["Subject"] = m.Subject
-    header["MIME-Version"] = "1.0"
-    header["Content-Type"] = "text/html; charset=\"utf-8\""
-    header["Content-Transfer-Encoding"] = "base64"
+	from := mail.Address{conf.MailFromName(), conf.MailFrom()}
+	header["From"] = from.String()
+	header["To"] = ""
+	header["Subject"] = m.Subject
+	header["MIME-Version"] = "1.0"
+	header["Content-Type"] = "text/html; charset=\"utf-8\""
+	header["Content-Transfer-Encoding"] = "base64"
 
-    return header
+	return header
 }
